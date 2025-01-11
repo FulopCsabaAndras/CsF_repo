@@ -65,7 +65,7 @@ def log_progress(message):
         f.write(timestamp + ' : ' + message + '\n')
 
 log_progress('Preliminaries complete. Initiating ETL process')
-df = extract(url, table_attribs)
+df = extract(url, table_attributes)
 
 log_progress('Data extraction complete. Initiating Transformation process')
 df = transform(df,'exchange_rate.csv')
