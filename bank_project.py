@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import requests
 import sqlite3
-import glob
 from datetime import datetime 
 
 
@@ -14,16 +13,15 @@ table_name = 'Largest_banks'
 csv_path = './Largest_banks_data.csv'
 
 def extract(url, table_attributum):
-    page = requests.get(url).text
-    data = BeautifulSoup(page,'html.parser')
+    html_page = requests.get(url).text
+    data = BeautifulSoup(html_page,'html.parser')
     df = pd.DataFrame(columns=table_attributum)
     tables = data.find_all('tbody')
     rows = tables[1].find_all('tr')
     for row in rows:
-        if row.find('td') is not None:
-            col = row.find_all('td')
-            bank_name = col[1].find_all('a')[0]['title']
-            market_cap = col[2].contents[0][:-1]
+            data = row.find_all('td')
+            bank_name = data[1].find_all('a')[0]['title']
+            market_cap = data[2].contents[0][:-1]
             data_dict =  {"Name":bank_name, "MC_USD_Billion":float(market_cap)}
             df1 = pd.DataFrame(data_dict, index=[0])
             df = pd.concat([df,df1], ignore_index=True)
