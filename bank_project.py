@@ -8,15 +8,15 @@ from datetime import datetime
 
 
 url = 'https://web.archive.org/web/20230908091635 /https://en.wikipedia.org/wiki/List_of_largest_banks'
-table_attribs = ["Name", "MC_USD_Billion"]
+table_attributum = ["Name", "MC_USD_Billion"]
 db_name = 'Banks.db'
 table_name = 'Largest_banks'
 csv_path = './Largest_banks_data.csv'
 
-def extract(url, table_attribs):
+def extract(url, table_attributum):
     page = requests.get(url).text
     data = BeautifulSoup(page,'html.parser')
-    df = pd.DataFrame(columns=table_attribs)
+    df = pd.DataFrame(columns=table_attributum)
     tables = data.find_all('tbody')
     rows = tables[1].find_all('tr')
     for row in rows:
