@@ -25,10 +25,11 @@ def extract(url, table_attributes):
     
     for row in rows:
         data = row.find_all('td')
-        
+        bank_name = data[1].a.contents[0]['title']
+        mark_cap = data[2].contents[0]
         data_dict = {
-        "Name": data[1].a.contents[0],
-        "MC_USD_Billion": data[2].contents[0]
+            "Name": bank_name,
+            "MC_USD_Billion": mark_cap
         }
         df2=pd.DataFrame(data_dict, index=[0])
         df = pd.concat([df, df2], ignore_index=True)
