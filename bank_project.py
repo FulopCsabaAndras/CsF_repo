@@ -7,15 +7,15 @@ from datetime import datetime
 
 
 url = 'https://web.archive.org/web/20230908091635 /https://en.wikipedia.org/wiki/List_of_largest_banks'
-table_attributum = ["Name", "MC_USD_Billion"]
+table_attributes = ["Name", "MC_USD_Billion"]
 db_name = 'Banks.db'
 table_name = 'Largest_banks'
 csv_path = './Largest_banks_data.csv'
 
-def extract(url, table_attributum):
+def extract(url, table_attributes):
     html_page = requests.get(url).text
     data = BeautifulSoup(html_page,'html.parser')
-    df = pd.DataFrame(columns=table_attributum)
+    df = pd.DataFrame(columns=table_attributes)
     tables = data.find_all('tbody')
     rows = tables[1].find_all('tr')
     for row in rows:
@@ -32,7 +32,7 @@ def transform(df,csv_path):
     exchange_rate = pd.read_csv(csv_path)
     exchange_rate = exchange_rate.set_index('Currency').to_dict()['Rate']
     df['MC_GBP_Billion'] = [np.round(x*exchange_rate['GBP'],2) for x in df['MC_USD_Billion']]
-    df['MC_EUR_Billion'] = [np.round(x*exchange_rate['GBP'],2) for x in df['MC_USD_Billion']]
+    df['MC_EUR_Billion'] = [np.round(x*exchange_rate['EUR'],2) for x in df['MC_USD_Billion']]
     df['MC_INR_Billion'] = [np.round(x*exchange_rate['INR'],2) for x in df['MC_USD_Billion']]
     return df
 
@@ -58,7 +58,7 @@ def log_progress(message):
 
 
 log_progress('Preliminaries complete. Initiating ETL process')
-df = extract(url, table_attributum)
+df = extract(url, table_attributes)
 
 log_progress('Data extraction complete. Initiating Transformation process')
 df = transform(df,'exchange_rate.csv')
