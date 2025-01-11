@@ -17,10 +17,11 @@ def extract(url, table_attributes):
     data = BeautifulSoup(html_page,'html.parser')
     df = pd.DataFrame(columns=table_attributes)
     tables = data.find_all('tbody')
-    rows = tables[1].find_all('tr')
+    rows = tables[0].find_all('tr')
     for row in rows:
+        if row.find('td') is not None:
             data = row.find_all('td')
-            bank_name = data[1].find_all('a')[0]['title']
+            bank_name = data[1].find_all('a')[1]['title']
             market_cap = data[2].contents[0][:-1]
             data_dict =  {"Name":bank_name, "MC_USD_Billion":float(market_cap)}
             df1 = pd.DataFrame(data_dict, index=[0])
@@ -75,7 +76,7 @@ load_to_db(df, sql_connection, table_name)
 
 log_progress('Data loaded to Database as table. Running the query')
 
-query_statement = f"SELECT * from {table_name} WHERE MC_USD_billions >= 100"
+query_statement = f"SELECT * from {table_name} WHERE MC_USD_Billion >= 100"
 run_query(query_statement, sql_connection)
 
 log_progress('Process Complete.')
