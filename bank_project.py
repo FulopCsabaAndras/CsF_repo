@@ -27,7 +27,7 @@ def extract(url, table_attributes):
         data = row.find_all('td')
         
         data_dict = {
-        "Name": data[0].a.contents[0],
+        "Name": data[1].a.contents[0],
         "MC_USD_Billion": data[2].contents[0]
         }
         df2=pd.DataFrame(data_dict, index=[0])
@@ -40,7 +40,7 @@ def transform(df,csv_path):
     exchange_rate = pd.read_csv(csv_path)
     exchange_rate = exchange_rate.set_index('Currency').to_dict()['Rate']
     df['MC_GBP_Billion'] = [np.round(x*exchange_rate['GBP'],2) for x in df['MC_USD_Billion']]
-    df['MC_EUR_Billion'] = [np.round(x*exchange_rate['GBP'],2) for x in df['MC_USD_Billion']]
+    df['MC_EUR_Billion'] = [np.round(x*exchange_rate['EUR'],2) for x in df['MC_USD_Billion']]
     df['MC_INR_Billion'] = [np.round(x*exchange_rate['INR'],2) for x in df['MC_USD_Billion']]
     return df
 
