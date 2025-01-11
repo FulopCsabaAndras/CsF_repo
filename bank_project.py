@@ -1,47 +1,48 @@
-import requests
-import pandas as pd 
-import numpy as np 
-from datetime import datetime
 from bs4 import BeautifulSoup
+import pandas as pd
+import numpy as np
+import requests
 import sqlite3
+import glob
+from datetime import datetime 
 
 
 url = 'https://web.archive.org/web/20230908091635 /https://en.wikipedia.org/wiki/List_of_largest_banks'
-exchange_rate_path = 'https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMSkillsNetwork-PY0221EN-Coursera/labs/v2/exchange_rate.csv'
-table_attributes = ['Name','MC_USD_Billion']
-table_attributes_final = ['Name','MC_USD_Billion','MC_GBP_Billion','MC_EUR_Billion','MC_INR_Billion']
-csv_path = 'Largest_banks_data.csv'
-db_name = 'banks.db'
+table_attribs = ["Name", "MC_USD_Billion"]
+db_name = 'Banks.db'
 table_name = 'Largest_banks'
-log_file = 'code_log'
+csv_path = './Largest_banks_data.csv'
 
-def extract(url, table_attributes):
-    html_page = requests.get(url).text
-    soup = BeautifulSoup(html_page, 'html.parser')
-    df = pd.DataFrame(table_attributes)
-    table = soup.find_all('tbody')
-    rows = table[2].find_all('tr')
-    
-    
+def log_progress(message): 
+    timestamp_format = '%Y-%h-%d-%H:%M:%S'
+    now = datetime.now()
+    timestamp = now.strftime(timestamp_format) 
+    with open("./code_log.txt","a") as f: 
+        f.write(timestamp + ' : ' + message + '\n')
+
+
+def extract(url, table_attribs):
+    page = requests.get(url).text
+    data = BeautifulSoup(page,'html.parser')
+    df = pd.DataFrame(columns=table_attribs)
+    tables = data.find_all('tbody')
+    rows = tables[1].find_all('tr')
     for row in rows:
-        data = row.find_all('td')
-        bank_name = data[1].find_all('a')[1]['title']
-        mark_cap = data[2].contents[0]
-        data_dict = {
-            "Name": bank_name,
-            "MC_USD_Billion": mark_cap
-        }
-        df2=pd.DataFrame(data_dict, index=[0])
-        df = pd.concat([df, df2], ignore_index=True)
-        
+        if row.find('td') is not None:
+            col = row.find_all('td')
+            bank_name = col[1].find_all('a')[0]['title']
+            market_cap = col[2].contents[0][:-1]
+            data_dict =  {"Name":bank_name, "MC_USD_Billion":market_cap}
+            df1 = pd.DataFrame(data_dict, index=[0])
+            df = pd.concat([df,df1], ignore_index=True)
     return df
-     
-   
+
+
 def transform(df,csv_path):
     exchange_rate = pd.read_csv(csv_path)
     exchange_rate = exchange_rate.set_index('Currency').to_dict()['Rate']
     df['MC_GBP_Billion'] = [np.round(x*exchange_rate['GBP'],2) for x in df['MC_USD_Billion']]
-    df['MC_EUR_Billion'] = [np.round(x*exchange_rate['EUR'],2) for x in df['MC_USD_Billion']]
+    df['MC_EUR_Billion'] = [np.round(x*exchange_rate['GBP'],2) for x in df['MC_USD_Billion']]
     df['MC_INR_Billion'] = [np.round(x*exchange_rate['INR'],2) for x in df['MC_USD_Billion']]
     return df
 
@@ -58,15 +59,8 @@ def run_query(query_statement, sql_connection):
     query_output = pd.read_sql(query_statement, sql_connection)
     print(query_output)
 
-def log_progress(message): 
-    timestamp_format = '%Y-%h-%d-%H:%M:%S'
-    now = datetime.now()
-    timestamp = now.strftime(timestamp_format) 
-    with open("./code_log.txt","a") as f: 
-        f.write(timestamp + ' : ' + message + '\n')
-
 log_progress('Preliminaries complete. Initiating ETL process')
-df = extract(url, table_attributes)
+df = extract(url, table_attribs)
 
 log_progress('Data extraction complete. Initiating Transformation process')
 df = transform(df,'exchange_rate.csv')
