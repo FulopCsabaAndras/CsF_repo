@@ -13,14 +13,6 @@ db_name = 'Banks.db'
 table_name = 'Largest_banks'
 csv_path = './Largest_banks_data.csv'
 
-def log_progress(message): 
-    timestamp_format = '%Y-%h-%d-%H:%M:%S'
-    now = datetime.now()
-    timestamp = now.strftime(timestamp_format) 
-    with open("./code_log.txt","a") as f: 
-        f.write(timestamp + ' : ' + message + '\n')
-
-
 def extract(url, table_attribs):
     page = requests.get(url).text
     data = BeautifulSoup(page,'html.parser')
@@ -32,7 +24,7 @@ def extract(url, table_attribs):
             col = row.find_all('td')
             bank_name = col[1].find_all('a')[0]['title']
             market_cap = col[2].contents[0][:-1]
-            data_dict =  {"Name":bank_name, "MC_USD_Billion":market_cap}
+            data_dict =  {"Name":bank_name, "MC_USD_Billion":float(market_cap)}
             df1 = pd.DataFrame(data_dict, index=[0])
             df = pd.concat([df,df1], ignore_index=True)
     return df
@@ -58,6 +50,14 @@ def run_query(query_statement, sql_connection):
     print(query_statement)
     query_output = pd.read_sql(query_statement, sql_connection)
     print(query_output)
+
+def log_progress(message): 
+    timestamp_format = '%Y-%h-%d-%H:%M:%S'
+    now = datetime.now()
+    timestamp = now.strftime(timestamp_format) 
+    with open("./code_log.txt","a") as f: 
+        f.write(timestamp + ' : ' + message + '\n')
+
 
 log_progress('Preliminaries complete. Initiating ETL process')
 df = extract(url, table_attribs)
