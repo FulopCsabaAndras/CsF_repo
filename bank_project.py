@@ -25,7 +25,7 @@ def extract(url, table_attributes):
     
     for row in rows:
         data = row.find_all('td')
-        bank_name = data[1].a.contents[0]['title']
+        bank_name = data[1].find_all('a')[1]['title']
         mark_cap = data[2].contents[0]
         data_dict = {
             "Name": bank_name,
