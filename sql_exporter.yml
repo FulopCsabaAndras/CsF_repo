@@ -1,0 +1,11 @@
+﻿global:
+  scrape_timeout_offset: 500ms
+  max_connections: 3
+  max_idle_connections: 3
+ 
+target:
+  data_source_name: 'sqlserver://sa:Wm8%23auDB%212475%24@localhost:1433'
+  collectors: [mssql_standard]
+ 
+collector_files:
+  - "C:/Monitoring/sql_exporter/mssql_standard.collector.yml"

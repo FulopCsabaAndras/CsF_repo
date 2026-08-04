@@ -1,0 +1,42 @@
+﻿collector_name: mssql_extended
+metrics:
+  - metric_name: mssql_deadlocks_total
+    type: counter
+    values: [deadlocks]
+    key_labels: [instance]
+    query: |
+      SELECT @@SERVERNAME AS instance, CAST(cntr_value AS bigint) AS deadlocks
+      FROM sys.dm_os_performance_counters
+      WHERE counter_name='Number of Deadlocks/sec' AND instance_name='_Total';
+
+  - metric_name: mssql_blocking_sessions
+    type: gauge
+    values: [blocked]
+    key_labels: [instance]
+    query: |
+      SELECT @@SERVERNAME AS instance, COUNT(*) AS blocked
+      FROM sys.dm_exec_requests WHERE blocking_session_id <> 0;
+
+  - metric_name: mssql_tempdb_file_size_kb
+    type: gauge
+    key_labels: [file_id, file_name, type_desc]
+    values: [size_kb]
+    query: |
+      SELECT df.file_id, df.name AS file_name, df.type_desc, CAST(df.size AS bigint)*8 AS size_kb
+      FROM tempdb.sys.database_files df;
+
+  - metric_name: mssql_tempdb_file_used_kb
+    type: gauge
+    key_labels: [file_id, file_name, type_desc]
+    values: [used_kb]
+    query: |
+      SELECT df.file_id, df.name AS file_name, df.type_desc, CAST(FILEPROPERTY(df.name,'SpaceUsed') AS bigint)*8 AS used_kb
+      FROM tempdb.sys.database_files df;
+
+  - metric_name: mssql_last_full_backup_timestamp
+    type: gauge
+    key_labels: [database_name]
+    values: [last_full_backup_ts]
+    query: |
+      SELECT bs.database_name, DATEDIFF(second, '19700101', MAX(bs.backup_finish_date)) AS last_full_backup_ts
+      FROM msdb.dbo.backupset bs WHERE bs.type='D' GROUP BY bs.database_name;
